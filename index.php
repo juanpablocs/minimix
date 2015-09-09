@@ -1,6 +1,10 @@
+
 <html>
 <head>
 <title>Chat with socket.io and node.js</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,minimum-scale=1.0,user-scalable=no">
+<meta name="google-signin-client_id" content="563502636110-om5gv8nng8hupjm517g8vsp7mv7834vs.apps.googleusercontent.com">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.4.0/css/font-awesome.min.css" type="text/css" />
 <style type="text/css">
 	body{background:#eee;font-family: arial;font-size: 14px;}
@@ -33,42 +37,79 @@
 </head>
 <body>
 
+
+<div class="g-signin2" data-onsuccess="onSignIn"></div>
+
+<a href="#" onclick="signOut();">Sign out</a>
+
 <div id="container">
-	<div id="searchContainer">
-		<div class="topsearch">
-			<form action="" id="formSearchVideo">
-				<input type="text" id="query" placeholder="Buscan Cancion">
-				<button> <i class="fa fa-search"></i> </button>
-			</form>
-		</div>
-		<div id="resultSearch">
-			<ul>
-			</ul>
-		</div>
-	</div>
-	<div id="playerContainer">
-		<div id="ytPlayer">
-			<video id="ytVideo"></video>
-			<div class="ytControls">
-				<a href="#play" id="ytPlay"><i class="fa fa-play"></i></a>
-				<a href="#pause" id="ytPause"><i class="fa fa-pause"></i></a>
-			</div>
-			<div id="ytLoading"><i class="fa fa-circle-o-notch fa-spin"></i></div>
-		</div>
-	</div>
+
+	<?php
+	$option = @$_GET['option'];
+	switch ($option) {
+		case 'add':
+			include 'view.add.phtml';
+			break;
+		
+		default:
+			include 'view.home.phtml';
+			break;
+	}
+
+	?>
 </div>
 
-<hr>
-<a href="#test" id="test">Test</a>
-<hr>
 
-
+<script src="https://apis.google.com/js/platform.js" async defer></script>
 <script src="http://code.jquery.com/jquery-latest.min.js"></script>
 <script src="js/youtube.js"></script>
 <script src="js/player.js"></script>
 <script src="http://localhost:3000/socket.io/socket.io.js"></script>
 
 <script> 
+
+function onReadyGoogleConnect(auth)
+{
+	console.log("inicio google connect");
+	verifySession(auth.isSignedIn.get());
+}
+function onFailure(a){
+	console.log("error: ",a);
+}
+
+function verifySession(isLogged){
+	console.log("logeado? ", isLogged);
+}
+function signOut() {
+	var auth2 = gapi.auth2.getAuthInstance();
+	auth2.signOut().then(function () {
+		alert('User signed out.');
+	});
+}
+
+function onSignIn(googleUser) {
+  var profile = googleUser.getBasicProfile();
+  console.log('ID: ' + profile.getId()); // Do not send to your backend! Use an ID token instead.
+  console.log('Name: ' + profile.getName());
+  console.log('Image URL: ' + profile.getImageUrl());
+  console.log('Email: ' + profile.getEmail());
+  alert('connect successs');
+  console.log(profile);
+}
+
+
+
+// gapi
+gapi.load('auth2', function() 
+{
+	var auth2 = gapi.auth2.getAuthInstance();
+	auth2.then(onReadyGoogleConnect, onFailure);
+	auth2.isSignedIn.listen(verifySession);
+
+});
+
+
+
 var socket = io.connect("http://localhost:3000");
 var time = null;
 var video_actual = null;
